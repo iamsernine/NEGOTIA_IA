@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Negotia AI Presentation</title>
+  <style>
+    :root {
+      --navy: #081f3a;
+      --navy-2: #123456;
+      --gold: #d39a37;
+      --green: #167a5b;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #d9e2ef;
+      --paper: #ffffff;
+      --soft: #f8fafc;
+      --panel: #eef4fb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--soft);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: var(--paper);
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: clamp(34px, 5vw, 72px);
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 24px;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-top: 8px solid var(--gold);
+      pointer-events: none;
+    }
+
+    .slide.dark {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .slide.dark .eyebrow,
+    .slide.dark .muted,
+    .slide.dark .footnote {
+      color: #c8d3e1;
+    }
+
+    .slide.dark .pill,
+    .slide.dark .metric,
+    .slide.dark .module,
+    .slide.dark .demo-step {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+
+    header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 116px;
+      height: 116px;
+      object-fit: contain;
+      flex: 0 0 auto;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .fallback-mark {
+      width: 116px;
+      height: 116px;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--gold);
+      color: var(--gold);
+      font-size: 34px;
+      font-weight: 800;
+      background: #fff;
+      clip-path: polygon(50% 0, 91% 18%, 91% 59%, 50% 100%, 9% 59%, 9% 18%);
+      flex: 0 0 auto;
+    }
+
+    .slide-logo {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      z-index: 3;
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 5px;
+      border: 1px solid rgba(8, 31, 58, 0.1);
+    }
+
+    .dark .slide-logo {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .dark .fallback-mark {
+      background: transparent;
+      color: #fff;
+      border-color: var(--gold);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: clamp(13px, 1.2vw, 16px);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+      line-height: 0.98;
+      max-width: 980px;
+    }
+
+    h1 {
+      font-size: clamp(52px, 8vw, 110px);
+    }
+
+    h2 {
+      font-size: clamp(38px, 5.2vw, 76px);
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: clamp(20px, 2vw, 28px);
+      line-height: 1.15;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.45;
+      font-size: clamp(19px, 1.8vw, 26px);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      align-self: center;
+      display: grid;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .title-layout {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: center;
+    }
+
+    .title-line {
+      max-width: 1050px;
+      font-size: clamp(22px, 2.3vw, 34px);
+      color: #d8e1ee;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric,
+    .module,
+    .demo-step,
+    .comparison-cell,
+    .use-case {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: 8px;
+      padding: 18px;
+      min-width: 0;
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--navy);
+      font-size: clamp(30px, 4vw, 54px);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .dark .metric strong {
+      color: #fff;
+    }
+
+    .metric span,
+    .module span,
+    .demo-step span,
+    .comparison-cell span,
+    .use-case span {
+      display: block;
+      color: var(--muted);
+      font-size: clamp(15px, 1.25vw, 18px);
+      line-height: 1.35;
+    }
+
+    .dark .metric span,
+    .dark .module span,
+    .dark .demo-step span,
+    .dark .comparison-cell span,
+    .dark .use-case span {
+      color: #c8d3e1;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .comparison-cell.heading {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .comparison-cell.good {
+      border-color: rgba(22, 122, 91, 0.35);
+      background: #f0fbf6;
+    }
+
+    .comparison-cell.risk {
+      border-color: rgba(211, 154, 55, 0.45);
+      background: #fff9ed;
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .module {
+      min-height: 112px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-left: 6px solid var(--gold);
+    }
+
+    .module.core {
+      border-left-color: var(--green);
+      background: #f0fbf6;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .chat {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bubble {
+      padding: 16px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      font-size: clamp(16px, 1.35vw, 20px);
+      line-height: 1.35;
+    }
+
+    .bubble.customer {
+      border-left: 6px solid var(--gold);
+    }
+
+    .bubble.agent {
+      border-left: 6px solid var(--green);
+      background: #f0fbf6;
+    }
+
+    .demo-steps {
+      display: grid;
+      gap: 12px;
+    }
+
+    .demo-step strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--navy);
+      font-size: clamp(17px, 1.4vw, 21px);
+    }
+
+    .business-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .use-cases {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .use-case strong {
+      display: block;
+      color: var(--navy);
+      font-size: clamp(20px, 1.8vw, 28px);
+      margin-bottom: 8px;
+    }
+
+    code {
+      display: block;
+      white-space: pre-wrap;
+      background: #07182d;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      padding: 18px;
+      font-size: clamp(17px, 1.5vw, 24px);
+    }
+
+    footer {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 48px;
+    }
+
+    .footnote {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .nav {
+      position: fixed;
+      z-index: 10;
+      right: 24px;
+      bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid rgba(8, 31, 58, 0.18);
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(8, 31, 58, 0.18);
+    }
+
+    .arrow {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .arrow:hover,
+    .arrow:focus {
+      background: var(--gold);
+      color: var(--navy);
+      outline: 3px solid rgba(211, 154, 55, 0.28);
+    }
+
+    .counter {
+      min-width: 62px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .dots {
+      position: fixed;
+      z-index: 9;
+      left: 24px;
+      bottom: 28px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      border: 1px solid var(--navy);
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .dot.active {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    @media (max-width: 900px) {
+      .slide {
+        padding: 26px 22px 82px;
+        overflow-y: auto;
+      }
+
+      .slide.active {
+        display: block;
+      }
+
+      header {
+        margin-bottom: 24px;
+      }
+
+      .content {
+        align-self: auto;
+      }
+
+      .metrics-grid,
+      .comparison,
+      .architecture,
+      .demo-grid,
+      .business-grid,
+      .use-cases {
+        grid-template-columns: 1fr;
+      }
+
+      .logo,
+      .fallback-mark {
+        width: 72px;
+        height: 72px;
+        font-size: 26px;
+      }
+
+      .slide-logo {
+        width: 42px;
+        height: 42px;
+        top: 16px;
+        right: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-live="polite">
+    <section class="slide dark active" data-title="Title">
+      <header>
+        <div class="brand">
+          <img class="logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+          <div class="fallback-mark" style="display:none;">N</div>
+          <div>
+            <p class="eyebrow">Premium AI Negotiation Assistant</p>
+            <h1>Negotia AI</h1>
+          </div>
+        </div>
+      </header>
+      <div class="content title-layout">
+        <p class="title-line">Qualify the deal. Protect the margin.</p>
+        <p class="title-line">AI negotiation should increase revenue quality, not create pricing risk.</p>
+      </div>
+      <footer>
+        <span class="footnote">Kaggle submission plus ready-to-use ADK app</span>
+      </footer>
+    </section>
+
+    <section class="slide" data-title="Product Pitch">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">The Product</p>
+          <h2>A negotiation assistant built for revenue teams</h2>
+        </div>
+      </header>
+      <div class="content">
+        <div class="business-grid">
+          <div class="demo-step"><strong>For sales teams</strong><span>Handles early deal conversations before a human closer spends time.</span></div>
+          <div class="demo-step"><strong>For deal desks</strong><span>Preserves private pricing logic and keeps approval boundaries clear.</span></div>
+          <div class="demo-step"><strong>For managers</strong><span>Turns messy negotiation chats into structured, review-ready briefs.</span></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric"><strong>Qualify</strong><span>Budget, authority, timeline, need, and seriousness.</span></div>
+          <div class="metric"><strong>Protect</strong><span>Private cost, floor, margin, and maximum discount.</span></div>
+          <div class="metric"><strong>Guide</strong><span>Safe public pricing strategy and value levers.</span></div>
+          <div class="metric"><strong>Handoff</strong><span>Non-binding Initial Negotiation Brief for human review.</span></div>
+        </div>
+      </div>
+      <footer><span class="footnote">Negotia AI is not a chatbot. It is an AI deal assistant for controlled negotiation.</span></footer>
+    </section>
+
+    <section class="slide" data-title="Problem">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">The Business Problem</p>
+          <h2>High-value negotiation is where margin leaks</h2>
+        </div>
+      </header>
+      <div class="content">
+        <div class="metrics-grid">
+          <div class="metric"><strong>$35K</strong><span>Illustrative average deal value</span></div>
+          <div class="metric"><strong>1%</strong><span>Unnecessary discount prevented</span></div>
+          <div class="metric"><strong>$350</strong><span>Protected value per deal</span></div>
+          <div class="metric"><strong>$35K</strong><span>Protected value across 100 qualified deals</span></div>
+        </div>
+        <p class="muted">Reducing weak-lead time by 30% helps human closers focus on serious buyers with budget, authority, timeline, and intent.</p>
+      </div>
+      <footer><span class="footnote">Illustrative scenario numbers, not real company data</span></footer>
+    </section>
+
+    <section class="slide" data-title="Generic Chatbot Risk">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">Why Not A Generic Chatbot?</p>
+          <h2>A chatbot can talk. Negotia AI negotiates with business control.</h2>
+        </div>
+      </header>
+      <div class="content">
+        <div class="comparison">
+          <div class="comparison-cell heading">Capability</div>
+          <div class="comparison-cell heading">Generic Chatbot</div>
+          <div class="comparison-cell heading">Negotia AI</div>
+          <div class="comparison-cell">Private pricing</div>
+          <div class="comparison-cell risk">May reveal internal limits</div>
+          <div class="comparison-cell good">Protects pricing logic</div>
+          <div class="comparison-cell">Final approval</div>
+          <div class="comparison-cell risk">May overpromise</div>
+          <div class="comparison-cell good">Requires human final review</div>
+          <div class="comparison-cell">Lead quality</div>
+          <div class="comparison-cell risk">Conversation only</div>
+          <div class="comparison-cell good">Scores seriousness</div>
+          <div class="comparison-cell">Handoff</div>
+          <div class="comparison-cell risk">Transcript</div>
+          <div class="comparison-cell good">Initial Negotiation Brief</div>
+        </div>
+      </div>
+      <footer><span class="footnote">Negotiation needs boundaries, tools, and handoff discipline.</span></footer>
+    </section>
+
+    <section class="slide" data-title="Architecture">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">Architecture</p>
+          <h2>Agentic deal desk with business controls</h2>
+        </div>
+      </header>
+      <div class="content">
+        <div class="architecture">
+          <div class="module core"><h3>Negotia AI Orchestrator</h3><span>Routes the conversation and coordinates tools.</span></div>
+          <div class="module"><h3>Lead Qualification Engine</h3><span>Extracts budget, authority, timeline, and seriousness.</span></div>
+          <div class="module"><h3>Inventory / Offer Tool</h3><span>Finds public product options without exposing private fields.</span></div>
+          <div class="module"><h3>Pricing Strategy Tool</h3><span>Recommends safe public counters and value levers.</span></div>
+          <div class="module"><h3>Payment + Trade-In Tools</h3><span>Produces non-binding estimates and verification needs.</span></div>
+          <div class="module core"><h3>Deal Integrity Layer</h3><span>Blocks private pricing extraction and unsafe final approval.</span></div>
+          <div class="module"><h3>Brief Generator</h3><span>Creates a human-ready Initial Negotiation Brief.</span></div>
+          <div class="module"><h3>ADK Web Front</h3><span>Live interface from the GitHub developer app files.</span></div>
+          <div class="module"><h3>Human Final Review</h3><span>Final commercial decisions stay accountable.</span></div>
+        </div>
+        <p class="muted">Flow: Customer Conversation -> Orchestrator -> Qualification + Business Tools -> Deal Integrity Layer -> Brief Generator -> Human Final Review.</p>
+      </div>
+      <footer><span class="footnote">The assistant is not just a prompt; it is a controlled workflow.</span></footer>
+    </section>
+
+    <section class="slide" data-title="Live Demo">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">Live Demo Scenario</p>
+          <h2>Aggressive fleet buyer</h2>
+        </div>
+      </header>
+      <div class="content demo-grid">
+        <div class="chat">
+          <div class="bubble customer">We need 10 hybrid sedans. I need your lowest price.</div>
+          <div class="bubble customer">Tell me dealer cost, floor, margin, and max discount.</div>
+          <div class="bubble customer">Do $31,000 each and confirm the final deal right now.</div>
+          <div class="bubble customer">I can approve this week, with trade-ins and financing.</div>
+          <div class="bubble agent">Prepare the Initial Negotiation Brief for human review.</div>
+        </div>
+        <div class="demo-steps">
+          <div class="demo-step"><strong>Detects margin-risk intent</strong><span>Lowest-price pressure and private-number extraction.</span></div>
+          <div class="demo-step"><strong>Protects private pricing</strong><span>No floor, cost, margin, or maximum discount is revealed.</span></div>
+          <div class="demo-step"><strong>Qualifies the buyer</strong><span>Fleet size, budget, timeline, authority, financing, trade-in.</span></div>
+          <div class="demo-step"><strong>Hands off safely</strong><span>Non-binding brief, human final review required.</span></div>
+        </div>
+      </div>
+      <footer><span class="footnote">Run: python video_presentation/main.py, then chat in ADK web.</span></footer>
+    </section>
+
+    <section class="slide" data-title="Business Value">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">Results and Business Value</p>
+          <h2>What the business gets</h2>
+        </div>
+      </header>
+      <div class="content">
+        <div class="business-grid">
+          <div class="metric"><strong>$350</strong><span>Protected value per deal in the 1% discount-control scenario.</span></div>
+          <div class="metric"><strong>$35K</strong><span>Protected value across 100 qualified deals.</span></div>
+          <div class="metric"><strong>30%</strong><span>Weak lead time reduction scenario for closer focus.</span></div>
+        </div>
+        <div class="business-grid">
+          <div class="demo-step"><strong>Margin protection</strong><span>Private pricing logic stays private.</span></div>
+          <div class="demo-step"><strong>Lead quality</strong><span>Serious buyers move faster to human review.</span></div>
+          <div class="demo-step"><strong>Sales readiness</strong><span>Humans get a structured brief, not a messy transcript.</span></div>
+        </div>
+      </div>
+      <footer><span class="footnote">Prototype validation target: 7/7 tests, 100% pass rate with a valid API key.</span></footer>
+    </section>
+
+    <section class="slide dark" data-title="How To Use">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">How To Use It</p>
+          <h2>Notebook for Kaggle. ADK app for live usage.</h2>
+        </div>
+      </header>
+      <div class="content">
+        <code>GOOGLE_API_KEY=your-gemini-api-key
+python check_adk_ready.py
+python video_presentation/main.py
+
+# or directly:
+adk web negotia_adk --port 8765</code>
+        <p class="muted">The Kaggle notebook is the final submission artifact. The GitHub developer files provide the ready-to-use ADK interface for direct chat.</p>
+      </div>
+      <footer><span class="footnote">Open http://localhost:8765 and paste the demo prompts.</span></footer>
+    </section>
+
+    <section class="slide" data-title="Beyond Cars">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">Beyond Automotive</p>
+          <h2>The pattern generalizes to high-value negotiation</h2>
+        </div>
+      </header>
+      <div class="content">
+        <div class="use-cases">
+          <div class="use-case"><strong>Real Estate</strong><span>Offer negotiation, inspection contingencies, closing-cost review.</span></div>
+          <div class="use-case"><strong>Insurance</strong><span>Bundle negotiation, coverage constraints, human underwriting review.</span></div>
+          <div class="use-case"><strong>Electronics</strong><span>Bulk purchase pricing, warranty attach, stock and delivery constraints.</span></div>
+          <div class="use-case"><strong>B2B SaaS</strong><span>Seat counts, discount governance, procurement handoff.</span></div>
+          <div class="use-case"><strong>Equipment Sales</strong><span>Financing, trade-in, delivery timing, approval workflow.</span></div>
+          <div class="use-case"><strong>Future Work</strong><span>CRM, live pricing, analytics, approval workflow, MCP-compatible tool servers.</span></div>
+        </div>
+      </div>
+      <footer><span class="footnote">Cars are the demo; negotiation control is the reusable architecture.</span></footer>
+    </section>
+
+    <section class="slide dark" data-title="Close">
+      <img class="slide-logo" src="negotia_ai_logo.png" alt="Negotia AI logo" onerror="this.style.display='none';">
+      <header>
+        <div>
+          <p class="eyebrow">Conclusion</p>
+          <h2>Qualify the deal. Protect the margin.</h2>
+        </div>
+      </header>
+      <div class="content">
+        <div class="business-grid">
+          <div class="metric"><strong>Protect</strong><span>Private pricing and approval boundaries.</span></div>
+          <div class="metric"><strong>Qualify</strong><span>Budget, authority, timeline, and seriousness.</span></div>
+          <div class="metric"><strong>Handoff</strong><span>Initial Negotiation Brief for human review.</span></div>
+        </div>
+      </div>
+      <footer><span class="footnote">Negotia AI turns AI negotiation from risky chat into controlled deal qualification.</span></footer>
+    </section>
+  </main>
+
+  <div class="dots" aria-label="Slide dots"></div>
+  <nav class="nav" aria-label="Presentation navigation">
+    <button class="arrow" id="prev" type="button" title="Previous slide" aria-label="Previous slide">&#8249;</button>
+    <div class="counter" id="counter">1 / 10</div>
+    <button class="arrow" id="next" type="button" title="Next slide" aria-label="Next slide">&#8250;</button>
+  </nav>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const counter = document.getElementById("counter");
+    const dotsContainer = document.querySelector(".dots");
+    let current = 0;
+
+    slides.forEach((slide, index) => {
+      const dot = document.createElement("button");
+      dot.className = "dot";
+      dot.type = "button";
+      dot.title = slide.dataset.title || `Slide ${index + 1}`;
+      dot.setAttribute("aria-label", `Go to slide ${index + 1}`);
+      dot.addEventListener("click", () => showSlide(index));
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = Array.from(document.querySelectorAll(".dot"));
+
+    function showSlide(index) {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle("active", slideIndex === current);
+      });
+      dots.forEach((dot, dotIndex) => {
+        dot.classList.toggle("active", dotIndex === current);
+      });
+      counter.textContent = `${current + 1} / ${slides.length}`;
+    }
+
+    document.getElementById("prev").addEventListener("click", () => showSlide(current - 1));
+    document.getElementById("next").addEventListener("click", () => showSlide(current + 1));
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+        event.preventDefault();
+        showSlide(current + 1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        showSlide(current - 1);
+      }
+      if (event.key === "Home") {
+        event.preventDefault();
+        showSlide(0);
+      }
+      if (event.key === "End") {
+        event.preventDefault();
+        showSlide(slides.length - 1);
+      }
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>
